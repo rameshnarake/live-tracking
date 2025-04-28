@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Live Location Coordinates</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f9f9f9;
+    }
+    h1 {
+      color: #333;
+    }
+    .coordinate {
+      font-size: 1.5em;
+      margin: 10px 0;
+      padding: 10px;
+      background: #e2e2e2;
+      border-radius: 5px;
+    }
+    #error {
+      color: red;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Live Location Coordinates</h1>
+  <div class="coordinate" id="latitude">Latitude: N/A</div>
+  <div class="coordinate" id="longitude">Longitude: N/A</div>
+  <div id="error"></div>
+
+  <script>
+    // Check if geolocation is available in the browser
+    if ("geolocation" in navigator) {
+      // Continuously watch the position
+      navigator.geolocation.watchPosition(
+        (position) => {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+          
+          // Update the content of the elements
+          document.getElementById("latitude").textContent = "Latitude: " + lat;
+          document.getElementById("longitude").textContent = "Longitude: " + lon;
+        },
+        (error) => {
+          // Display error messages if any
+          document.getElementById("error").textContent = "Error: " + error.message;
+        },
+        {
+          enableHighAccuracy: true, // Request high accuracy (if available)
+          maximumAge: 1000,         // Maximum age of a cached position
+          timeout: 5000             // Timeout after 5 seconds
+        }
+      );
+    } else {
+      // Inform the user if geolocation is not supported
+      document.getElementById("error").textContent = "Geolocation is not supported by your browser.";
+    }
+  </script>
+</body>
+</html>
