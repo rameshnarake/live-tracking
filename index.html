@@ -1,64 +1,90 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Live Location Coordinates</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Live Location Tracker</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-sA+e2uqb6Jh7zWv/LIc98T9NfD9C+wyXL2A2RYmZgEc=" crossorigin="" />
   <style>
     body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      background: #f9f9f9;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f0f4f8;
     }
-    h1 {
-      color: #333;
+    .card {
+      margin-top: 1rem;
+      background: white;
+      padding: 1rem 2rem;
+      border-radius: 1rem;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      text-align: center;
+      font-size: 1.2rem;
     }
-    .coordinate {
-      font-size: 1.5em;
-      margin: 10px 0;
-      padding: 10px;
-      background: #e2e2e2;
-      border-radius: 5px;
+    .coords {
+      margin-top: 0.5rem;
+      font-weight: bold;
     }
-    #error {
-      color: red;
-      margin-top: 20px;
+    #map {
+      height: 70vh;
+      width: 90vw;
+      max-width: 800px;
+      margin-top: 1rem;
+      border-radius: 1rem;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
   </style>
 </head>
 <body>
-  <h1>Live Location Coordinates</h1>
-  <div class="coordinate" id="latitude">Latitude: N/A</div>
-  <div class="coordinate" id="longitude">Longitude: N/A</div>
-  <div id="error"></div>
+  <div class="card">
+    <div>🌍 Your Live Location:</div>
+    <div class="coords" id="coords">Fetching...</div>
+  </div>
+  <div id="map"></div>  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-o9N1jv4k8oHLaWDGzG07Dcp2AHKNF9CsrPzjP8gCINQ=" crossorigin=""></script>  <script>
+    const coordsElement = document.getElementById("coords");
+    let map, marker;
 
-  <script>
-    // Check if geolocation is available in the browser
-    if ("geolocation" in navigator) {
-      // Continuously watch the position
-      navigator.geolocation.watchPosition(
+    function initMap(lat, lng) {
+      map = L.map('map').setView([lat, lng], 16);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap'
+      }).addTo(map);
+      marker = L.marker([lat, lng]).addTo(map);
+    }
+
+    function updateLocation() {
+      if (!navigator.geolocation) {
+        coordsElement.textContent = "Geolocation is not supported by your browser.";
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
         (position) => {
-          const lat = position.coords.latitude;
-          const lon = position.coords.longitude;
-          
-          // Update the content of the elements
-          document.getElementById("latitude").textContent = "Latitude: " + lat;
-          document.getElementById("longitude").textContent = "Longitude: " + lon;
+          const { latitude, longitude } = position.coords;
+          coordsElement.textContent = `Latitude: ${latitude.toFixed(5)}, Longitude: ${longitude.toFixed(5)}`;
+
+          if (!map) {
+            initMap(latitude, longitude);
+          } else {
+            map.setView([latitude, longitude]);
+            marker.setLatLng([latitude, longitude]);
+          }
         },
         (error) => {
-          // Display error messages if any
-          document.getElementById("error").textContent = "Error: " + error.message;
+          coordsElement.textContent = `Error: ${error.message}`;
         },
         {
-          enableHighAccuracy: true, // Request high accuracy (if available)
-          maximumAge: 1000,         // Maximum age of a cached position
-          timeout: 5000             // Timeout after 5 seconds
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0
         }
       );
-    } else {
-      // Inform the user if geolocation is not supported
-      document.getElementById("error").textContent = "Geolocation is not supported by your browser.";
     }
-  </script>
-</body>
+
+    updateLocation();
+    setInterval(updateLocation, 5000);
+  </script></body>
 </html>
